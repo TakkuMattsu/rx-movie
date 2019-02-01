@@ -1,18 +1,19 @@
 package com.example.takkumattsu.rxmovie
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Filter
-import android.widget.ListAdapter
-import android.widget.TextView
+import android.widget.*
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import org.w3c.dom.Text
 
 data class Movie(
         val title: String,
-        val genres: String
+        val genres: String,
+        val isFav: Boolean
 ){
     override fun toString(): String {
         return title
@@ -21,17 +22,22 @@ data class Movie(
 
 class MovieAdapter(context: Context): ArrayAdapter<Movie>(context, 0) {
 
+    private val onClickFabObserver = PublishSubject.create<Movie>()
+    val onClickFab: Observable<Movie> = onClickFabObserver
+
     data class ViewHolder(
             val title: TextView,
-            val genres: TextView
+            val genres: TextView,
+            val fabBtn: Button
     )
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = convertView ?: LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, null)
+        val view = convertView ?: LayoutInflater.from(parent.context).inflate(R.layout.movie_item, null)
         val holder = (view.tag as? ViewHolder) ?: {
             val viewHolder = ViewHolder(
-                    view.findViewById(android.R.id.text1),
-                    view.findViewById(android.R.id.text2)
+                    view.findViewById(R.id.title),
+                    view.findViewById(R.id.genres),
+                    view.findViewById(R.id.fab)
             )
             view.tag = viewHolder
             viewHolder
@@ -39,6 +45,11 @@ class MovieAdapter(context: Context): ArrayAdapter<Movie>(context, 0) {
         val item = getItem(position)
         holder.title.text = item.title
         holder.genres.text = item.genres
+        holder.fabBtn.setOnClickListener {
+            onClickFabObserver.onNext(item)
+            onClickFabObserver.onComplete()
+        }
+        holder.fabBtn.setBackgroundColor(if (item.isFav) Color.YELLOW else Color.WHITE)
         return view
     }
 }

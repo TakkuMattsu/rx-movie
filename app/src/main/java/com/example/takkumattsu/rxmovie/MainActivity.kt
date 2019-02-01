@@ -1,10 +1,13 @@
 package com.example.takkumattsu.rxmovie
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.annotation.RawRes
 import android.support.v7.widget.SearchView
+import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.ListView
 import android.widget.Toast
 import io.reactivex.Observable
@@ -20,7 +23,8 @@ class MainActivity : AppCompatActivity() {
     data class MovieInfo (
         val movieId: String,
         val title: String,
-        val genres: String
+        val genres: String,
+        val isFab: Boolean
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,8 +38,16 @@ class MainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    adapter.add(Movie(it.title, it.genres))
+                    adapter.add(Movie(it.title, it.genres, it.isFab))
                 }
+        adapter.onClickFab
+                .subscribe { Log.d("RxMovie", "$it")}
+        // お気に入り機能
+        // - [x] メインのリストにお気に入りボタンを作る
+        // - [x] お気に入りリストを作る(切り替えはタブ)
+        //   - FabActivtyを作る
+        // - [ ] FabActivtyはDatabaseからお気に入りリストを読み込む
+        // - [ ] お気に入り情報をDatabaseに入れる
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -45,6 +57,13 @@ class MainActivity : AppCompatActivity() {
         val searchView = menu!!.findItem(R.id.search_menu_search_view).actionView as SearchView
         searchView.queryTextChanges()
                 .subscribe { listView.setFilterText(it.toString()) }
+        menu.addSubMenu("Fabへ")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        val intent = Intent(this, FabActivity::class.java)
+        startActivity(intent)
         return true
     }
 
@@ -62,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                             line = it.readLine()
                             line?.let {
                                 val l = it.split(",")
-                                emitter.onNext(MovieInfo(l[0],l[1],l[2]))
+                                emitter.onNext(MovieInfo(l[0],l[1],l[2], false)) // CSVからの読み込みの際はfab情報がないため
                             }
                         }
                         emitter.onComplete()
