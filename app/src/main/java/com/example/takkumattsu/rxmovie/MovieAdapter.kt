@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Filter
 import android.widget.ListAdapter
 import android.widget.TextView
 import org.w3c.dom.Text
@@ -12,7 +13,11 @@ import org.w3c.dom.Text
 data class Movie(
         val title: String,
         val genres: String
-)
+){
+    override fun toString(): String {
+        return title
+    }
+}
 
 class MovieAdapter(context: Context): ArrayAdapter<Movie>(context, 0) {
 
