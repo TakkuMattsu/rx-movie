@@ -1,10 +1,10 @@
 package com.example.takkumattsu.rxmovie
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.annotation.RawRes
-import android.support.v7.widget.SearchView
+import androidx.annotation.RawRes
+import androidx.appcompat.widget.SearchView
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
