@@ -11,6 +11,7 @@ import io.reactivex.subjects.PublishSubject
 import org.w3c.dom.Text
 
 data class Movie(
+        val movieId: String,
         val title: String,
         val genres: String,
         val isFav: Boolean
@@ -47,7 +48,6 @@ class MovieAdapter(context: Context): ArrayAdapter<Movie>(context, 0) {
         holder.genres.text = item.genres
         holder.fabBtn.setOnClickListener {
             onClickFabObserver.onNext(item)
-            onClickFabObserver.onComplete()
         }
         holder.fabBtn.setBackgroundColor(if (item.isFav) Color.YELLOW else Color.WHITE)
         return view

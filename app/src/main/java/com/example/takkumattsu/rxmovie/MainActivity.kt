@@ -1,31 +1,23 @@
 package com.example.takkumattsu.rxmovie
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.annotation.RawRes
-import android.support.v7.widget.SearchView
-import android.util.Log
+import androidx.annotation.RawRes
+import androidx.appcompat.widget.SearchView
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ListView
-import android.widget.Toast
+import com.jakewharton.rxbinding3.appcompat.queryTextChanges
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import com.jakewharton.rxbinding2.support.v7.widget.queryTextChanges
+import kotlin.concurrent.thread
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var listView: ListView
-
-    data class MovieInfo (
-        val movieId: String,
-        val title: String,
-        val genres: String,
-        val isFab: Boolean
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,16 +30,20 @@ class MainActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    adapter.add(Movie(it.title, it.genres, it.isFab))
+                    adapter.add(Movie(it.movieId, it.title, it.genres, it.isFav))
                 }
         adapter.onClickFab
-                .subscribe { Log.d("RxMovie", "$it")}
-        // お気に入り機能
-        // - [x] メインのリストにお気に入りボタンを作る
-        // - [x] お気に入りリストを作る(切り替えはタブ)
-        //   - FabActivtyを作る
-        // - [ ] FabActivtyはDatabaseからお気に入りリストを読み込む
-        // - [ ] お気に入り情報をDatabaseに入れる
+                .subscribe {
+                    thread {
+                        val dao = RxMovieApplication.database.movieInfoDao()
+                        // TODO: 本来はこれを更新することでボタンの色を変えたりする
+                        dao.insert(MovieInfo(it.movieId, it.title, it.genres, !it.isFav))
+                    }
+                }
+        // やりたいこと
+        // csv読み込む
+        // データベースに読み込む
+        // データベースに更新があったら一覧を更新
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -81,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                             line = it.readLine()
                             line?.let {
                                 val l = it.split(",")
-                                emitter.onNext(MovieInfo(l[0],l[1],l[2], false)) // CSVからの読み込みの際はfab情報がないため
+                                emitter.onNext(MovieInfo(l[0], l[1], l[2], false)) // CSVからの読み込みの際はfab情報がないため
                             }
                         }
                         emitter.onComplete()
